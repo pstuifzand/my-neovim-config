@@ -482,9 +482,6 @@ require('lazy').setup({
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
-      -- Additional lua configuration, makes nvim stuff amazing!
-      'folke/neodev.nvim',
-
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
 
@@ -516,10 +513,6 @@ require('lazy').setup({
       --
       -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
       -- and elegantly composed help section, `:help lsp-vs-treesitter`
-
-      -- First, enable neodev. This is helpful for auto-configuring the Lua LSP
-      -- to understand your Neovim environment
-      require('neodev').setup()
 
       --  This function gets run when an LSP connects to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
@@ -812,7 +805,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        python = { "isort", "black" },
+        python = { 'isort', 'black' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -957,10 +950,10 @@ require('lazy').setup({
       cmp.setup.cmdline(':', {
         mapping = cmp.mapping.preset.cmdline(),
         sources = cmp.config.sources({
-          { name = 'path' }
+          { name = 'path' },
         }, {
-            { name = 'cmdline' }
-          })
+          { name = 'cmdline' },
+        }),
       })
     end,
   },
@@ -1045,7 +1038,7 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
-    config = function ()
+    config = function()
       local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
       parser_config.templ = {
         install_info = {
@@ -1057,6 +1050,18 @@ require('lazy').setup({
           requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
         },
         filetype = 'templ', -- if filetype does not match the parser name
+      }
+      parser_config.dafny = {
+        install_info = {
+          url = '~/work/treesitter-dafny', -- local path or git repo
+          --url = "https://github.com/pstuifzand/tree-sitter-dafny",
+          files = { 'src/parser.c' }, -- note that some parsers also require src/scanner.c or src/scanner.cc
+          -- optional entries:
+          --branch = "master", -- default branch in case of git repo if different from master
+          generate_requires_npm = false, -- if stand-alone parser without npm dependencies
+          requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
+        },
+        filetype = 'dfy', -- if filetype does not match the parser name
       }
     end,
     -- There are additional nvim-treesitter modules that you can use to interact
@@ -1126,23 +1131,9 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
   pattern = vim.fn.expand 'COMMIT_EDITMSG',
 })
 
-require'lspconfig'.dafny.setup{}
+require('lspconfig').dafny.setup {}
 
-local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
-parser_config.dafny = {
-  install_info = {
-    url = "~/work/treesitter-dafny", -- local path or git repo
-    --url = "https://github.com/pstuifzand/tree-sitter-dafny",
-    files = {"src/parser.c"}, -- note that some parsers also require src/scanner.c or src/scanner.cc
-    -- optional entries:
-    --branch = "master", -- default branch in case of git repo if different from master
-    generate_requires_npm = false, -- if stand-alone parser without npm dependencies
-    requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
-  },
-  filetype = "dfy", -- if filetype does not match the parser name
-}
-
-vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = false })
+vim.api.nvim_set_hl(0, 'DiagnosticUnderlineHint', { undercurl = false })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
