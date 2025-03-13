@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -279,12 +279,17 @@ require('lazy').setup({
       require('which-key').setup()
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+      require('which-key').add {
+        { "<leader>c", group = "[C]ode" },
+        { "<leader>c_", hidden = true },
+        { "<leader>d", group = "[D]ocument" },
+        { "<leader>d_", hidden = true },
+        { "<leader>r", group = "[R]ename" },
+        { "<leader>r_", hidden = true },
+        { "<leader>s", group = "[S]earch" },
+        { "<leader>s_", hidden = true },
+        { "<leader>w", group = "[W]orkspace" },
+        { "<leader>w_", hidden = true },
       }
     end,
   },
@@ -351,7 +356,10 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        -- pickers = {},
+        defaults = {
+          preview = false,
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -405,7 +413,7 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for neovim
-      'williamboman/mason.nvim',
+      { 'williamboman/mason.nvim', opts = {} },
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -563,7 +571,19 @@ require('lazy').setup({
             },
           },
         },
-        volar = {},
+        phpactor = {
+          init_options = {
+            -- ['php_code_sniffer.enabled'] = false,
+          },
+        },
+        volar = {
+          filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue' },
+          init_options = {
+            vue = {
+              hybridMode = false,
+            },
+          },
+        },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- If you use something like typescript, where the tooling is as bad as the language,
@@ -648,7 +668,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { "isort", "black" },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
@@ -751,21 +771,21 @@ require('lazy').setup({
 
       cmp.setup.filetype('gitcommit', {
         sources = cmp.config.sources({
-          { name = 'git' }
+          { name = 'git' },
         }, {
-            { name = 'buffer' }
-          })
+          { name = 'buffer' },
+        }),
       })
 
       -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
       cmp.setup.cmdline({ '/', '?' }, {
         mapping = cmp.mapping.preset.cmdline(),
         sources = {
-          { name = 'buffer' }
-        }
+          { name = 'buffer' },
+        },
       })
 
-      -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+      -- -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
       cmp.setup.cmdline(':', {
         mapping = cmp.mapping.preset.cmdline(),
         sources = cmp.config.sources({
@@ -774,7 +794,6 @@ require('lazy').setup({
             { name = 'cmdline' }
           })
       })
-
     end,
   },
 
@@ -842,7 +861,6 @@ require('lazy').setup({
     build = ':TSUpdate',
     config = function()
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-
       ---@diagnostic disable-next-line: missing-fields
       require('nvim-treesitter.configs').setup {
         ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc' },
@@ -850,6 +868,19 @@ require('lazy').setup({
         auto_install = true,
         highlight = { enable = true },
         indent = { enable = true },
+      }
+
+      local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
+      parser_config.templ = {
+        install_info = {
+          url = '~/tmp/tree-sitter-templ', -- local path or git repo
+          files = { 'src/parser.c', 'src/scanner.c' }, -- note that some parsers also require src/scanner.c or src/scanner.cc
+          -- optional entries:
+          branch = 'method-calls', -- default branch in case of git repo if different from master
+          generate_requires_npm = false, -- if stand-alone parser without npm dependencies
+          requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
+        },
+        filetype = 'templ', -- if filetype does not match the parser name
       }
 
       -- There are additional nvim-treesitter modules that you can use to interact
@@ -912,6 +943,24 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
   group = git_group,
   pattern = vim.fn.expand 'COMMIT_EDITMSG',
 })
+
+require'lspconfig'.dafny.setup{}
+
+local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+parser_config.dafny = {
+  install_info = {
+    url = "~/work/treesitter-dafny", -- local path or git repo
+    --url = "https://github.com/pstuifzand/tree-sitter-dafny",
+    files = {"src/parser.c"}, -- note that some parsers also require src/scanner.c or src/scanner.cc
+    -- optional entries:
+    --branch = "master", -- default branch in case of git repo if different from master
+    generate_requires_npm = false, -- if stand-alone parser without npm dependencies
+    requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
+  },
+  filetype = "dfy", -- if filetype does not match the parser name
+}
+
+vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = false })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

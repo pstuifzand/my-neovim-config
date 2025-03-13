@@ -3,7 +3,7 @@ return {
   enabled = false,
   opts = {
     backend = 'ollama',
-    model = 'stable-code',
+    model = 'dolphin-mistral',
     url = 'http://localhost:11434/api/generate',
 
     tokens_to_clear = { '<EOT>' },
